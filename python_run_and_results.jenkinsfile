@@ -57,15 +57,6 @@ pipelineJob('python_run_and_results') {
                   CURRENT_DEP_VERSION = sh(returnStdout: true, script: 'pip freeze | grep \${PYTHON_DEP_NAME} | cut -d"=" -f3')
 
                   WORKSPACE_NEW = sh(returnStdout: true, script: 'pwd')
-
-                  println CURRENT_PYTHON_VERSION
-                  println PYTHON_VERSION
-                  println PIP_INSTALLED
-                  println PIP_INSTALLED
-                  println PYTHON_DEP_NAME
-                  println PYTHON_DEP_VERSION
-                  println CURRENT_DEP_VERSION
-
                 }
               }
             }
