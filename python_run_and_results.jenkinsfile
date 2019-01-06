@@ -1,0 +1,111 @@
+pipelineJob('python_run_and_results') {
+    displayName('python_run_and_results')
+    description('Run python script and attach logs.')
+
+    checkoutRetryCount(3)
+
+    logRotator {
+        numToKeep(100)
+        daysToKeep(15)
+    }
+
+    wrappers { colorizeOutput() }
+
+    definition {
+        cps {
+            sandbox()
+            script("""
+
+        pipeline {
+          agent any
+          environment {
+           CURRENT_PYTHON_VERSION = ''
+           PYTHON_VERSION = ''
+           PIP_INSTALLED = ''
+           PYTHON_DEP_NAME = ''
+           CURRENT_DEP_VERSION = ''
+          }
+          parameters {
+            string (name : 'GIT_URL',defaultValue: 'https://github.com/orakuleg/eriks',description: '')
+            string (name : 'BRANCH_PATTERN',defaultValue: 'master',description: '')
+            string (name : 'VERSION_OF_SCRIPT',defaultValue: 'main_with_improvements.py',description: '')
+          }
+          stages {
+            stage ('Prepare') {
+                steps {
+                    checkout([\$class: 'GitSCM',
+                        branches: [[name: "origin/\${BRANCH_PATTERN}"]],
+                        doGenerateSubmoduleConfigurations: false,
+                        extensions: [[\$class: 'LocalBranch']],
+                        submoduleCfg: [],
+                        userRemoteConfigs: [[
+                               credentialsId: 'jenkins',
+                              url: "\${GIT_URL}"]]])
+                  }
+               }
+            stage ('Gather information') {
+              steps {
+                script {
+                  CURRENT_PYTHON_VERSION = sh(returnStdout: true, script: 'python -V 2>&1 | cut -d" " -f2')
+                  PYTHON_VERSION = sh(returnStdout: true, script: 'cat python_version.txt')
+                  PIP_INSTALLED = sh(returnStdout: true, script: 'pip -V | cut -d" " -f1')
+                  if (PIP_INSTALLED.trim().equals("pip")) {
+                    PIP_INSTALLED = true
+                  }
+                  PYTHON_DEP_NAME = sh(returnStdout: true, script: 'cat requirements.txt | cut -d"=" -f1')
+                  PYTHON_DEP_VERSION = sh(returnStdout: true, script: 'cat requirements.txt | cut -d"=" -f3')
+                  CURRENT_DEP_VERSION = sh(returnStdout: true, script: 'pip freeze | grep \${PYTHON_DEP_NAME} | cut -d"=" -f3')
+
+                  WORKSPACE_NEW = sh(returnStdout: true, script: 'pwd')
+
+                  println CURRENT_PYTHON_VERSION
+                  println PYTHON_VERSION
+                  println PIP_INSTALLED
+                  println PIP_INSTALLED
+                  println PYTHON_DEP_NAME
+                  println PYTHON_DEP_VERSION
+                  println CURRENT_DEP_VERSION
+
+                }
+              }
+            }
+            stage ('Install python') {
+              when {
+                expression { return  CURRENT_PYTHON_VERSION.trim() != PYTHON_VERSION.trim() }
+              }
+              steps {
+                build job: 'install_python', parameters: [string(name: 'PYTHON_VERSION', value: PYTHON_VERSION),booleanParam(name: 'PIP_INSTALLED', value: PIP_INSTALLED)]
+              }
+            }
+            stage ('Install modules') {
+              when {
+                expression { return CURRENT_DEP_VERSION.trim() != PYTHON_DEP_VERSION.trim() }
+              }
+              steps {
+                build job: 'install_dependecies', parameters: [string(name: 'WORKSPACE_NEW', value: WORKSPACE_NEW)]
+              }
+            }
+            stage ('Run the script') {
+              steps {
+                sh "python \${VERSION_OF_SCRIPT}"
+              }
+            }
+            stage('Archive build output') {
+              steps {
+                archiveArtifacts artifacts: 'logfile.log'
+              }
+            }
+          }
+          post {
+              always {
+                  cleanWs()
+              }
+          }
+        }
+
+
+
+        """.stripIndent())
+        }
+    }
+}

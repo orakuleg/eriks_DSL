@@ -1,0 +1,38 @@
+pipelineJob('install_dependecies') {
+    displayName('install_dependecies')
+    description('Install dependecies')
+
+    checkoutRetryCount(3)
+    logRotator {
+        numToKeep(100)
+        daysToKeep(15)
+    }
+
+    wrappers { colorizeOutput() }
+
+    definition {
+        cps {
+            sandbox()
+            script("""
+          pipeline {
+            agent {
+              node {
+                label "master"
+                // customWorkspace "/var/lib/jenkins/workspace/python_run_and_results" // there is issue according this bug - https://issues.jenkins-ci.org/browse/JENKINS-21622 -- it's adding @2 at the end, so I created a workaround
+              }
+            }
+            parameters {
+              string (name : 'WORKSPACE_NEW',defaultValue: '/var/lib/jenkins/workspace/python_run_and_results',description: '')
+            }
+            stages {
+              stage('Install dependecies') {
+                steps {
+                  sh "cd \${WORKSPACE_NEW.trim()} && pip install -r requirements.txt"
+                }
+              }
+            }
+          }
+            """.stripIndent())
+        }
+    }
+}

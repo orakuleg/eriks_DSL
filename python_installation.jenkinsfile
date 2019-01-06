@@ -1,0 +1,59 @@
+pipelineJob('Install_python') {
+    displayName('Install_python_and_pip')
+    description('Install python and pip') // from the description of the first task lets decide that we are using CentOS 7 and repository CentOS-7 - Base are enabled by default
+    // And also let's take that python version always be 2.7.5 // а может и фул пайплайн
+
+    checkoutRetryCount(3)
+
+    logRotator {
+        numToKeep(100)
+        daysToKeep(15)
+    }
+
+    wrappers { colorizeOutput() }
+
+    definition {
+        cps {
+            sandbox()
+            script("""
+        pipeline {
+          agent {
+            node {
+              label "master"
+            }
+          }
+          parameters {
+            string(name: 'PYTHON_VERSION', defaultValue: '2.7.5', description: '')
+            booleanParam(name: 'PIP_INSTALLED', defaultValue: true, description: '')
+          }
+          stages {
+            stage('Install python and pip') {
+              step {
+                sh '''
+                  wget https://www.python.org/ftp/python/\${PYTHON_VERSION}/Python-\${PYTHON_VERSION}.tar.xz
+                  yum groupinstall -y "Development Tools"
+                  tar -xJf Python-\${PYTHON_VERSION}.tar.xz
+                  cd Python-\${PYTHON_VERSION}
+                  ./configure
+                  make
+                  make install
+                '''
+              }
+            }
+            stage{'Install pip'} {
+              when {
+                expression {
+                  PIP_INSTALLED == false
+                }
+                step {
+                  sh 'curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"'
+                  sh "python get-pip.py"
+                }
+              }
+            }
+          }
+        }
+            """.stripIndent())
+        }
+    }
+}
