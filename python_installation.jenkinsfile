@@ -1,8 +1,6 @@
 pipelineJob('Install_python') {
     displayName('Install_python_and_pip')
-    description('Install python and pip') 
-
-    checkoutRetryCount(3)
+    description('Install python and pip')
 
     logRotator {
         numToKeep(100)
@@ -15,43 +13,45 @@ pipelineJob('Install_python') {
         cps {
             sandbox()
             script("""
-        pipeline {
-          agent {
-            node {
-              label "master"
-            }
-          }
-          parameters {
-            string(name: 'PYTHON_VERSION', defaultValue: '2.7.5', description: '')
-            booleanParam(name: 'PIP_INSTALLED', defaultValue: true, description: '')
-          }
-          stages {
-            stage('Install python and pip') {
-              step {
-                sh '''
-                  wget https://www.python.org/ftp/python/\${PYTHON_VERSION}/Python-\${PYTHON_VERSION}.tar.xz
-                  yum groupinstall -y "Development Tools"
-                  tar -xJf Python-\${PYTHON_VERSION}.tar.xz
-                  cd Python-\${PYTHON_VERSION}
-                  ./configure
-                  make
-                  make install
-                '''
-              }
-            }
-            stage{'Install pip'} {
-              when {
-                expression {
-                  PIP_INSTALLED == false
+
+                pipeline {
+                  agent {
+                    node {
+                      label "master"
+                    }
+                  }
+                  parameters {
+                    string(name: 'PYTHON_VERSION', defaultValue: '2.7.5', description: '')
+                    booleanParam(name: 'PIP_INSTALLED', defaultValue: true, description: '')
+                  }
+                  stages {
+                    stage('Install python and pip') {
+                      step {
+                        sh '''
+                          wget https://www.python.org/ftp/python/\${PYTHON_VERSION}/Python-\${PYTHON_VERSION}.tar.xz
+                          yum groupinstall -y "Development Tools"
+                          tar -xJf Python-\${PYTHON_VERSION}.tar.xz
+                          cd Python-\${PYTHON_VERSION}
+                          ./configure
+                          make
+                          make install
+                        '''
+                      }
+                    }
+                    stage{'Install pip'} {
+                      when {
+                        expression {
+                          PIP_INSTALLED == false
+                        }
+                        step {
+                          sh 'curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"'
+                          sh "python get-pip.py"
+                        }
+                      }
+                    }
+                  }
                 }
-                step {
-                  sh 'curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"'
-                  sh "python get-pip.py"
-                }
-              }
-            }
-          }
-        }
+                
             """.stripIndent())
         }
     }
