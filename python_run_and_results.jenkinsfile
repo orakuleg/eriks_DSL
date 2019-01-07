@@ -23,6 +23,7 @@ pipelineJob('python_run_and_results') {
                    PIP_INSTALLED = ''
                    PYTHON_DEP_NAME = ''
                    CURRENT_DEP_VERSION = ''
+                   CURRENT_DEP_VERSION_TEMP = ''
                   }
                   parameters {
                     string (name : 'GIT_URL',defaultValue: 'https://github.com/orakuleg/eriks',description: '')
@@ -56,7 +57,8 @@ pipelineJob('python_run_and_results') {
                           PYTHON_DEP_NAME = sh(returnStdout: true, script: 'cat requirements.txt | cut -d"=" -f1')
                           PYTHON_DEP_VERSION = sh(returnStdout: true, script: 'cat requirements.txt | cut -d"=" -f3')
                           if (PIP_INSTALLED.equals(true)) {
-                            CURRENT_DEP_VERSION = sh(returnStdout: true, script: 'pip freeze | grep \${PYTHON_DEP_NAME} | cut -d"=" -f3')
+                            CURRENT_DEP_VERSION_TEMP = sh(returnStdout: true, script: "pip freeze | grep \${PYTHON_DEP_NAME}")
+                            CURRENT_DEP_VERSION = CURRENT_DEP_VERSION_TEMP.split('=')[2]
                           } else {
                             CURRENT_DEP_VERSION = '0'
                           }        
