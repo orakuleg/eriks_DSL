@@ -27,10 +27,10 @@ pipelineJob('Install_python') {
                     stage('Install python and pip') {
                       steps {
                         sh '''
-                          wget https://www.python.org/ftp/python/\\${PYTHON_VERSION}/Python-\\${PYTHON_VERSION}.tar.xz
+                          wget https://www.python.org/ftp/python/\${PYTHON_VERSION}/Python-\${PYTHON_VERSION}.tar.xz
                           sudo yum groupinstall -y "Development Tools"
-                          tar -xJf Python-\\${PYTHON_VERSION}.tar.xz
-                          cd Python-\\${PYTHON_VERSION}
+                          tar -xJf Python-\${PYTHON_VERSION}.tar.xz
+                          cd Python-\${PYTHON_VERSION}
                           sudo ./configure
                           sudo make
                           sudo make install
