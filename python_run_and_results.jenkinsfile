@@ -51,11 +51,16 @@ pipelineJob('python_run_and_results') {
                           PIP_INSTALLED = sh(returnStdout: true, script: 'pip -V | cut -d" " -f1')
                           if (PIP_INSTALLED.trim().equals("pip")) {
                             PIP_INSTALLED = true
+                          } else {
+                            PIP_INSTALLED = false  
                           }
                           PYTHON_DEP_NAME = sh(returnStdout: true, script: 'cat requirements.txt | cut -d"=" -f1')
                           PYTHON_DEP_VERSION = sh(returnStdout: true, script: 'cat requirements.txt | cut -d"=" -f3')
-                          CURRENT_DEP_VERSION = sh(returnStdout: true, script: 'pip freeze | grep \${PYTHON_DEP_NAME} | cut -d"=" -f3')
-        
+                          if (PIP_INSTALLED.equals(true)) {
+                            CURRENT_DEP_VERSION = sh(returnStdout: true, script: 'pip freeze | grep \${PYTHON_DEP_NAME} | cut -d"=" -f3')
+                          } else {
+                            CURRENT_DEP_VERSION = '0'
+                          }        
                           WORKSPACE_NEW = sh(returnStdout: true, script: 'pwd')
                         }
                       }
