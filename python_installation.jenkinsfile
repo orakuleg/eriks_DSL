@@ -1,7 +1,6 @@
 pipelineJob('Install_python') {
     displayName('Install_python_and_pip')
-    description('Install python and pip') // from the description of the first task lets decide that we are using CentOS 7 and repository CentOS-7 - Base are enabled by default
-    // And also let's take that python version always be 2.7.5 // а может и фул пайплайн
+    description('Install python and pip') 
 
     checkoutRetryCount(3)
 
