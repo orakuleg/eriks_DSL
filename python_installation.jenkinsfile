@@ -13,7 +13,6 @@ pipelineJob('Install_python') {
         cps {
             sandbox()
             script("""
-
                 pipeline {
                   agent {
                     node {
@@ -28,29 +27,27 @@ pipelineJob('Install_python') {
                     stage('Install python and pip') {
                       steps {
                         sh '''
-                          wget https://www.python.org/ftp/python/\${PYTHON_VERSION}/Python-\${PYTHON_VERSION}.tar.xz
+                          wget https://www.python.org/ftp/python/\\${PYTHON_VERSION}/Python-\\${PYTHON_VERSION}.tar.xz
                           sudo yum groupinstall -y "Development Tools"
-                          tar -xJf Python-\${PYTHON_VERSION}.tar.xz
-                          cd Python-\${PYTHON_VERSION}
-                          ./configure
-                          make
-                          make install
+                          tar -xJf Python-\\${PYTHON_VERSION}.tar.xz
+                          cd Python-\\${PYTHON_VERSION}
+                          sudo ./configure
+                          sudo make
+                          sudo make install
                         '''
                       }
                     }
                     stage('Install pip') {
                       when {
                         expression { return PIP_INSTALLED == false }
-                        }
-                        steps {
-                          sh 'curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"'
-                          sh "python get-pip.py"
-                        }
+                      }
+                      steps {
+                        sh 'curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"'
+                        sh "python get-pip.py"
                       }
                     }
                   }
                 }
-                
             """.stripIndent())
         }
     }

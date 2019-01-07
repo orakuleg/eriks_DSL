@@ -15,7 +15,6 @@ pipelineJob('python_run_and_results') {
         cps {
             sandbox()
             script("""
-
                 pipeline {
                   agent any
                   environment {
@@ -98,7 +97,6 @@ pipelineJob('python_run_and_results') {
                       }
                   }
                 }
-
             """.stripIndent())
         }
     }

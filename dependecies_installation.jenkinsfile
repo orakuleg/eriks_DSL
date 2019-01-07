@@ -13,7 +13,6 @@ pipelineJob('install_dependecies') {
         cps {
             sandbox()
             script("""
-
                 pipeline {
                   agent {
                     node {
@@ -33,7 +32,7 @@ pipelineJob('install_dependecies') {
                     }
                   }
                 }
-                
+
             """.stripIndent())
         }
     }
